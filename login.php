@@ -1,22 +1,17 @@
 <?php
 session_start();
-include 'db.php'; // Asegúrate de que db.php use el puerto 3307
+include 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $user = mysqli_real_escape_string($conexion, $_POST['username']);
+    $user = $_POST['username'];
     $pass = $_POST['password'];
 
-    // Buscamos al usuario en la tabla que creamos
-    $query = "SELECT * FROM usuarios WHERE username = '$user' AND password = '$pass'";
-    $resultado = mysqli_query($conexion, $query);
+    $stmt = $conexion->prepare("SELECT * FROM usuarios WHERE username = :u AND password = :p");
+    $stmt->execute([':u' => $user, ':p' => $pass]);
+    $datos = $stmt->fetch();
 
-    if (mysqli_num_rows($resultado) > 0) {
-        $datos = mysqli_fetch_assoc($resultado);
-        
-        // IMPORTANTE: Guardamos la sesión
-        $_SESSION['usuario'] = $datos['username']; 
-        
-        // Redirigimos al panel
+    if ($datos) {
+        $_SESSION['usuario'] = $datos['username'];
         header("Location: admin.php");
         exit();
     } else {
@@ -40,9 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="card shadow">
         <div class="card-body p-4">
             <h3 class="text-center mb-4">Iniciar Sesión</h3>
-            
+
             <?php if(isset($error)) echo "<div class='alert alert-danger'>$error</div>"; ?>
-            
+
             <form method="POST">
                 <div class="mb-3">
                     <label class="form-label">Usuario</label>

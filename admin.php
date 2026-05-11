@@ -7,8 +7,8 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
-// Consultamos las imágenes más recientes primero
-$resultado = mysqli_query($conexion, "SELECT * FROM imagenes ORDER BY id DESC");
+$stmt = $conexion->query("SELECT * FROM imagenes ORDER BY id DESC");
+$imagenes = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -24,7 +24,6 @@ $resultado = mysqli_query($conexion, "SELECT * FROM imagenes ORDER BY id DESC");
         <h1>Panel de Control</h1>
         <div>
             <a href="index.php" class="btn btn-primary me-2" target="_blank">Ver Carrusel</a>
-            
             <a href="registro_user.php" class="btn btn-success me-2">Nuevo Usuario</a>
             <a href="logout.php" class="btn btn-danger">Cerrar Sesión</a>
         </div>
@@ -56,18 +55,18 @@ $resultado = mysqli_query($conexion, "SELECT * FROM imagenes ORDER BY id DESC");
             </tr>
         </thead>
         <tbody>
-            <?php while($row = mysqli_fetch_assoc($resultado)): ?>
+            <?php foreach($imagenes as $row): ?>
             <tr>
                 <td><?php echo $row['id']; ?></td>
                 <td><?php echo $row['nombre']; ?></td>
                 <td><img src="<?php echo $row['ruta']; ?>" width="80" style="border-radius: 5px;"></td>
                 <td>
-                    <a href="eliminar.php?id=<?php echo $row['id']; ?>" 
-                       class="btn btn-outline-danger btn-sm" 
+                    <a href="eliminar.php?id=<?php echo $row['id']; ?>"
+                       class="btn btn-outline-danger btn-sm"
                        onclick="return confirm('¿Seguro que quieres eliminar esta imagen?')">Eliminar</a>
                 </td>
             </tr>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </tbody>
     </table>
 </body>

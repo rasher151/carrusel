@@ -1,15 +1,17 @@
 <?php
 $host = "127.0.0.1";
+$port = 5432;
+$db   = "carrusel";
 $user = "rsolache";
 $pass = "201987";
-$db   = "carrusel_mariadb";
-$port = 3306;
 
-$conexion = mysqli_connect($host, $user, $pass, $db, $port);
-
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
+try {
+    $dsn = "pgsql:host=$host;port=$port;dbname=$db";
+    $conexion = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
-
-mysqli_set_charset($conexion, "utf8");
 ?>

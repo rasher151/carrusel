@@ -2,15 +2,15 @@
 include 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nuevo_user = mysqli_real_escape_string($conexion, $_POST['username']);
-    $nueva_pass = $_POST['password']; // Aquí podrías usar password_hash por seguridad
+    $nuevo_user = $_POST['username'];
+    $nueva_pass = $_POST['password'];
 
-    $sql = "INSERT INTO usuarios (username, password) VALUES ('$nuevo_user', '$nueva_pass')";
-    
-    if (mysqli_query($conexion, $sql)) {
+    try {
+        $stmt = $conexion->prepare("INSERT INTO usuarios (username, password) VALUES (:u, :p)");
+        $stmt->execute([':u' => $nuevo_user, ':p' => $nueva_pass]);
         echo "<script>alert('Usuario registrado correctamente'); window.location='admin.php';</script>";
-    } else {
-        echo "Error: " . mysqli_error($conexion);
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
     }
 }
 ?>
