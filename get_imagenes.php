@@ -1,19 +1,30 @@
 <?php
-include 'db.php'; 
+include 'db.php';
 
-// Esto evita que cualquier eco o espacio en blanco previo arruine el JSON
-if (ob_get_length()) ob_clean(); 
+if (ob_get_length()) ob_clean();
 
-$query = "SELECT nombre, ruta FROM imagenes ORDER BY id DESC";
-$resultado = mysqli_query($conexion, $query);
+$accion = $_GET['accion'] ?? 'inicio';
+$id_actual = intval($_GET['id_actual'] ?? 0);
 
-$imagenes = [];
-while ($row = mysqli_fetch_assoc($resultado)) {
-    $imagenes[] = $row;
+if ($accion === 'inicio') {
+    $stmt = $conexion->query("SELECT id, nombre, ruta FROM imagenes ORDER BY id ASC LIMIT 1");
+} elseif ($accion === 'siguiente') {
+    $stmt = $conexion->prepare("SELECT id, nombre, ruta FROM imagenes WHERE id > :id ORDER BY id ASC LIMIT 1");
+    $stmt->execute([':id' => $id_actual]);
+    if ($stmt->rowCount() == 0) {
+        $stmt = $conexion->query("SELECT id, nombre, ruta FROM imagenes ORDER BY id ASC LIMIT 1");
+    }
+} elseif ($accion === 'anterior') {
+    $stmt = $conexion->prepare("SELECT id, nombre, ruta FROM imagenes WHERE id < :id ORDER BY id DESC LIMIT 1");
+    $stmt->execute([':id' => $id_actual]);
+    if ($stmt->rowCount() == 0) {
+        $stmt = $conexion->query("SELECT id, nombre, ruta FROM imagenes ORDER BY id DESC LIMIT 1");
+    }
 }
 
-// Indicamos al navegador que lo que sigue es una lista de datos (JSON)
+$imagen = $stmt->fetch(PDO::FETCH_ASSOC);
+
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($imagenes);
+echo json_encode($imagen);
 exit();
 ?>
