@@ -33,12 +33,12 @@
 
 <div class="container mt-5">
     <h2 class="text-center mb-4">carrusel</h2>
-    
+
     <div class="card shadow-lg border-0" style="border-radius: 15px; overflow: hidden;">
         <div id="contenedor-ajax">
             <div class="text-white p-5">Iniciando conexión con el servidor...</div>
         </div>
-        
+
         <div class="d-flex justify-content-between p-3 bg-white border-top">
             <button class="btn btn-primary px-4" id="btn-prev">⬅️ Anterior</button>
             <div class="text-center">
@@ -52,64 +52,46 @@
 
 <script>
 $(document).ready(function() {
-    let imagenes = [];
-    let indiceActual = 0;
+    let idActual = 0;
 
-    // 1. Carga inicial de datos desde get_imagenes.php
-    function cargarServidor() {
+    function pedirImagen(accion) {
         $.ajax({
             url: 'get_imagenes.php',
             type: 'GET',
             dataType: 'json',
-            success: function(data) {
-                imagenes = data;
-                if(imagenes.length > 0) {
-                    actualizarNodo(0);
-                }
+            data: { accion: accion, id_actual: idActual },
+            success: function(foto) {
+                if (!foto) return;
+                idActual = foto.id;
+
+                const timestamp = new Date().getTime();
+                $('#contenedor-ajax').empty();
+                $('#contenedor-ajax').append(`
+                    <img src="${foto.ruta}"
+                         id="img-node-${timestamp}"
+                         class="img-sustituida"
+                         alt="${foto.nombre}">
+                                  alt="${foto.nombre}">
+                `);
+                $('#nombre-foto').text(foto.nombre);
+                $('#contador').text(`ID: ${foto.id}`);
             },
             error: function() {
-                $('#contenedor-ajax').html('<div class="text-danger p-5">Error de respuesta del servidor.</div>');
+                $('#contenedor-ajax').html('<div class="text-danger p-5">Error del servidor.</div>');
             }
         });
     }
 
-    // 2. FUNCIÓN DE SUSTITUCIÓN (Lo que el profe quiere ver en el inspector)
-    function actualizarNodo(index) {
-        const foto = imagenes[index];
-
-        // PASO A: Vaciamos el contenedor por completo (Se elimina el nodo anterior del DOM)
-        $('#contenedor-ajax').empty();
-
-        // PASO B: Creamos el nuevo elemento de imagen de forma limpia
-        // Usamos un ID único basado en el tiempo para que el inspector resalte el cambio
-        const timestamp = new Date().getTime();
-        const nuevaImagen = `
-            <img src="${foto.ruta}" 
-                 id="img-node-${timestamp}" 
-                 class="img-sustituida" 
-                 alt="${foto.nombre}">
-        `;
-
-        // PASO C: Inyectamos el nuevo nodo
-        $('#contenedor-ajax').append(nuevaImagen);
-        
-        // Actualizamos textos informativos
-        $('#nombre-foto').text(foto.nombre);
-        $('#contador').text(`FOTO ${index + 1} DE ${imagenes.length}`);
-    }
-
-    // Eventos de botones
     $('#btn-next').click(function() {
-        indiceActual = (indiceActual + 1) % imagenes.length;
-        actualizarNodo(indiceActual);
+        pedirImagen('siguiente');
     });
 
     $('#btn-prev').click(function() {
-        indiceActual = (indiceActual - 1 + imagenes.length) % imagenes.length;
-        actualizarNodo(indiceActual);
+        pedirImagen('anterior');
     });
 
-    cargarServidor();
+    // Carga solo la primera imagen
+    pedirImagen('inicio');
 });
 </script>
 
